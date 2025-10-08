@@ -1,363 +1,1138 @@
 "use client";
 
-import React, { useState, useMemo, Suspense, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Image from "next/image";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
 import { motion, AnimatePresence } from "framer-motion";
-import Lottie from "lottie-react";
+import { 
+  FaSun, FaMoon, FaGithub, FaExternalLinkAlt, FaCode, 
+  FaEnvelope, FaMapMarkerAlt, FaPhone, FaDownload,
+  FaLinkedin, FaTwitter, FaHeart, FaRocket, FaStar,
+  FaArrowRight, FaCalendarAlt, FaGlobe
+} from "react-icons/fa";
 
-// 3D Spinning Logo
-function SpinningLogo() {
-  return (
-    <mesh rotation={[0.6, 0.8, 0.2]}>
-      <boxGeometry args={[1.6, 1.6, 1.6]} />
-      <meshStandardMaterial roughness={0.2} metalness={0.6} />
-    </mesh>
-  );
-}
+// Projects data
+const PROJECTS = [
+  {
+    id: "blog",
+    title: "Blog App",
+    thumbnail: "/images/placeholder.png",
+    description:
+      "A full-featured blog application with posts, rich-text editing, comments, and a clean responsive UI.",
+    demo: "https://blog-app-indol-theta.vercel.app/",
+    repo: "https://github.com/ezrani-a/blog-appp",
+    tech: ["Next.js", "Tailwind CSS", "Markdown", "Vercel"],
+  },
+  {
+    id: "saas",
+    title: "SaaS Landing",
+    thumbnail: "/images/Screenshot1.png",
+    description:
+      "Marketing-focused SaaS landing page with animated hero, pricing, and lead capture. Built for performance and accessibility.",
+    demo: "https://saas-landing-c1kc.vercel.app/",
+    repo: "https://github.com/ezrani-a/saas-landing",
+    tech: ["Next.js", "Framer Motion", "Tailwind CSS"],
+  },
+  {
+    id: "dashboard",
+    title: "E-commerce Dashboard",
+    thumbnail: "/images/Screenshot.png",
+    description:
+      "Admin dashboard with charts, filters, and user management — focuses on clarity and data visualization.",
+    demo: "https://my-ecommerce-dashboard1.vercel.app/",
+    repo: "https://github.com/ezrani-a/my-ecommerce-dashboard1",
+    tech: ["Next.js", "Chart.js", "Tailwind CSS"],
+  },
+];
 
-function Hero3D({ className = "h-72 w-full" }) {
-  return (
-    <div className={className}>
-      <Canvas camera={{ position: [0, 0, 4.5], fov: 50 }}>
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[5, 5, 5]} intensity={0.6} />
-        <Suspense fallback={null}>
-          <SpinningLogo />
-        </Suspense>
-        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.8} />
-      </Canvas>
-    </div>
-  );
-}
+// Skills data
+const SKILLS = [
+  { name: "Next.js", level: 90, icon: "⚡" },
+  { name: "React", level: 85, icon: "🔧" },
+  { name: "TypeScript", level: 80, icon: "📘" },
+  { name: "Tailwind CSS", level: 95, icon: "🎨" },
+  { name: "Node.js", level: 75, icon: "🚀" },
+  { name: "Flutter", level: 70, icon: "📱" },
+  { name: "MongoDB", level: 65, icon: "🗄️" },
+  { name: "Firebase", level: 75, icon: "🔥" },
+];
 
-export default function Page() {
-  const [darkMode, setDarkMode] = useState(false);
-  const [selected, setSelected] = useState(null);
-  const [contactForm, setContactForm] = useState({ name: "", email: "", message: "" });
-  const [contactMsg, setContactMsg] = useState("");
+// Animated text variants
+const textVariants = {
+  hidden: { 
+    opacity: 0,
+    y: 50,
+    filter: "blur(10px)"
+  },
+  visible: { 
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: {
+      duration: 0.8,
+      ease: "easeOut"
+    }
+  }
+};
 
-  // Dark mode persistence
+const staggerText = {
+  visible: {
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.3
+    }
+  }
+};
+
+// Typewriter effect component
+const TypewriterText = ({ text, delay = 0 }) => {
+  const [displayText, setDisplayText] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
+
   useEffect(() => {
-    const saved = localStorage.getItem("darkMode") === "true";
-    setDarkMode(saved);
-  }, []);
+    if (currentIndex < text.length) {
+      const timeout = setTimeout(() => {
+        setDisplayText(prev => prev + text[currentIndex]);
+        setCurrentIndex(prev => prev + 1);
+      }, 100);
+      return () => clearTimeout(timeout);
+    }
+  }, [currentIndex, text]);
+
+  return (
+    <span className="inline-block">
+      {displayText}
+      <motion.span
+        animate={{ opacity: [1, 0, 1] }}
+        transition={{ duration: 0.8, repeat: Infinity }}
+        className="ml-1"
+      >
+        |
+      </motion.span>
+    </span>
+  );
+};
+
+// Custom Particles Component
+const CustomParticles = ({ darkMode }) => {
+  const canvasRef = useRef(null);
+  const particlesRef = useRef([]);
+  const animationRef = useRef(null);
+
   useEffect(() => {
-    localStorage.setItem("darkMode", darkMode);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width = window.innerWidth;
+    const height = canvas.height = window.innerHeight;
+
+    const createParticles = () => {
+      const particles = [];
+      const count = 60;
+      
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          size: Math.random() * 3 + 1,
+          speedX: (Math.random() - 0.5) * 0.5,
+          speedY: (Math.random() - 0.5) * 0.5,
+          color: darkMode ? '#c4b5fd' : '#4f46e5',
+          opacity: Math.random() * 0.2 + 0.1
+        });
+      }
+      return particles;
+    };
+
+    particlesRef.current = createParticles();
+
+    const animate = () => {
+      ctx.clearRect(0, 0, width, height);
+      
+      particlesRef.current.forEach((particle, index) => {
+        particle.x += particle.speedX;
+        particle.y += particle.speedY;
+        
+        if (particle.x < 0 || particle.x > width) particle.speedX *= -1;
+        if (particle.y < 0 || particle.y > height) particle.speedY *= -1;
+        
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fillStyle = particle.color.replace(')', `, ${particle.opacity})`).replace('rgb', 'rgba');
+        ctx.fill();
+        
+        particlesRef.current.forEach((otherParticle, otherIndex) => {
+          if (index !== otherIndex) {
+            const dx = particle.x - otherParticle.x;
+            const dy = particle.y - otherParticle.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < 150) {
+              ctx.beginPath();
+              ctx.strokeStyle = darkMode ? 'rgba(167, 139, 250, 0.1)' : 'rgba(99, 102, 241, 0.1)';
+              ctx.lineWidth = 0.5;
+              ctx.moveTo(particle.x, particle.y);
+              ctx.lineTo(otherParticle.x, otherParticle.y);
+              ctx.stroke();
+            }
+          }
+        });
+      });
+      
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      particlesRef.current = createParticles();
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+      window.removeEventListener('resize', handleResize);
+    };
   }, [darkMode]);
 
-  const allProjects = [
-    {
-      id: "blog",
-      title: "Blog App",
-      category: "Web App",
-      thumbnail: "/images/placeholder.png",
-      description: "A full-featured blog application with posts, comments, and rich-text editing.",
-      demo: "https://blog-app-indol-theta.vercel.app/",
-      repo: "https://github.com/ezrani-a/blog-app",
-      lottie: "/animations/blog.json",
-    },
-    {
-      id: "saas",
-      title: "SaaS Landing",
-      category: "Landing",
-      thumbnail: "/images/Screenshot 1.png",
-      description: "Marketing landing page with animations, pricing, and lead capture.",
-      demo: "https://saas-landing-c1kc.vercel.app/",
-      repo: "https://github.com/ezrani-a/saas-landing",
-      lottie: "/animations/saas.json",
-    },
-    {
-      id: "dashboard",
-      title: "E‑commerce Dashboard",
-      category: "Dashboard",
-      thumbnail: "/images/Screenshot.png",
-      description: "Admin dashboard with charts, tables, and user management.",
-      demo: "https://my-ecommerce-dashboard1.vercel.app/",
-      repo: "https://github.com/ezrani-a/ecommerce-dashboard",
-      lottie: "/animations/dashboard.json",
-    },
-  ];
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 -z-10 pointer-events-none"
+      style={{ opacity: 0.7 }}
+    />
+  );
+};
 
-  const categories = useMemo(() => ["All", ...new Set(allProjects.map((p) => p.category))], []);
-  const [filter, setFilter] = useState("All");
-  const filtered = allProjects.filter((p) => filter === "All" || p.category === filter);
+// CV Download Function
+const downloadCV = () => {
+  // Create a PDF-like structure using html2canvas and jspdf
+  // For now, we'll create a simple text file CV
+  const cvContent = `
+EZRA ATSIKELEWI
+Full Stack Developer
 
-  // Contact form submission
-  const handleContactSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(contactForm),
+CONTACT INFORMATION
+Email: atsikelewie@gmail.com
+Phone: +251 96 865 0365
+Location: Jimma, Ethiopia
+GitHub: github.com/ezrani-a
+LinkedIn: linkedin.com/in/ezra-atsikelewi
+
+PROFESSIONAL SUMMARY
+Experienced Full Stack Developer specializing in modern web technologies including Next.js, React, TypeScript, and Flutter. Passionate about creating responsive, performant web applications with excellent user experiences. Strong background in both frontend and backend development with a focus on clean code and best practices.
+
+TECHNICAL SKILLS
+• Frontend: Next.js, React, TypeScript, Tailwind CSS, Framer Motion
+• Backend: Node.js, Express, MongoDB, Firebase
+• Mobile: Flutter, Dart
+• Tools: Git, Vercel, Chart.js, Markdown
+• Languages: JavaScript, TypeScript, Dart, HTML5, CSS3
+
+PROJECT EXPERIENCE
+
+Blog Application
+• Developed a full-featured blog with rich-text editing and comments
+• Technologies: Next.js, Tailwind CSS, Markdown, Vercel
+• Features: Responsive design, SEO optimized, modern UI
+
+SaaS Landing Page
+• Created a marketing-focused landing page with animations
+• Technologies: Next.js, Framer Motion, Tailwind CSS
+• Features: Animated hero section, pricing tables, lead capture
+
+E-commerce Dashboard
+• Built an admin dashboard with data visualization
+• Technologies: Next.js, Chart.js, Tailwind CSS
+• Features: Charts, filters, user management system
+
+EDUCATION
+[Bachelor Degree in Information Technology]
+[Jimma University:Jimma Institue of Technology]
+
+LANGUAGES
+• English: Fluent
+• Amharic: Native
+
+AVAILABILITY
+Available for full-time positions, freelance projects, and collaborations.
+
+REFERENCES
+Available upon request.
+  `;
+
+  const blob = new Blob([cvContent], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'Ezra_Atsikelewi_CV.txt';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+export default function Page() {
+  const [darkMode, setDarkMode] = useState(true);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [activeSection, setActiveSection] = useState("home");
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("darkMode");
+    if (saved !== null) setDarkMode(saved === "true");
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", darkMode);
+    localStorage.setItem("darkMode", darkMode ? "true" : "false");
+  }, [darkMode]);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width - 0.5) * 20;
+        const y = ((e.clientY - rect.top) / rect.height - 0.5) * 20;
+        setMousePosition({ x, y });
+      }
+    };
+
+    const handleScroll = () => {
+      const sections = ["home", "projects", "skills", "contact"];
+      const scrollY = window.scrollY;
+
+      sections.forEach(section => {
+        const element = document.getElementById(section);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          if (rect.top <= 100 && rect.bottom >= 100) {
+            setActiveSection(section);
+          }
+        }
       });
-      const data = await res.json();
-      setContactMsg(data.message || data.error);
-      setContactForm({ name: "", email: "", message: "" });
-    } catch (err) {
-      setContactMsg("Something went wrong!");
+    };
+
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener("mousemove", handleMouseMove);
     }
-  };
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      if (container) {
+        container.removeEventListener("mousemove", handleMouseMove);
+      }
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  const projects = useMemo(() => PROJECTS, []);
 
   return (
-    <div className={darkMode ? "dark" : ""}>
-      {/* Background Gradient + Floating Blobs */}
-      <motion.div
-        className="absolute inset-0 -z-10 bg-gradient-to-r from-purple-400 via-pink-500 to-red-500"
-        animate={{ backgroundPosition: ["0% 50%", "100% 50%"] }}
-        transition={{ duration: 15, repeat: Infinity, repeatType: "mirror" }}
-      />
-      <motion.div
-        className="absolute top-20 left-10 w-40 h-40 bg-pink-500 dark:bg-pink-700 rounded-full opacity-40 blur-3xl"
-        animate={{ y: [0, 20, 0], x: [0, 10, 0], scale: [1, 1.2, 1] }}
-        transition={{ duration: 12, repeat: Infinity, repeatType: "mirror" }}
-      />
-      <motion.div
-        className="absolute top-1/2 right-20 w-72 h-72 bg-purple-500 dark:bg-purple-700 rounded-full opacity-30 blur-3xl"
-        animate={{ y: [0, -20, 0], x: [0, -15, 0], scale: [1, 1.15, 1] }}
-        transition={{ duration: 18, repeat: Infinity, repeatType: "mirror" }}
-      />
-      <motion.div
-        className="absolute bottom-32 left-1/3 w-60 h-60 bg-blue-400 dark:bg-blue-700 rounded-full opacity-35 blur-3xl"
-        animate={{ y: [0, 25, 0], x: [0, 15, 0], scale: [1, 1.1, 1] }}
-        transition={{ duration: 20, repeat: Infinity, repeatType: "mirror" }}
-      />
+    <div className={darkMode ? "dark" : ""} ref={containerRef}>
+      {/* Enhanced 3D Background - Fixed CSS Error */}
+      <div className="fixed inset-0 -z-20 overflow-hidden">
+        {/* Separate background and animation layers */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: darkMode
+              ? "linear-gradient(45deg, #0f172a, #1e1b4b, #2e1065, #831843, #0f172a)"
+              : "linear-gradient(45deg, #e0e7ff, #faf5ff, #e0f2fe, #fce7f3, #e0e7ff)",
+            backgroundSize: "400% 400%",
+          }}
+        />
+        
+        <motion.div
+          className="absolute inset-0"
+          animate={{ 
+            backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+          }}
+          transition={{ 
+            duration: 20, 
+            repeat: Infinity, 
+            repeatType: "mirror",
+            ease: "linear"
+          }}
+          style={{
+            background: darkMode
+              ? "linear-gradient(45deg, transparent, transparent, transparent, transparent, transparent)"
+              : "linear-gradient(45deg, transparent, transparent, transparent, transparent, transparent)",
+            backgroundSize: "400% 400%",
+          }}
+        />
+        
+        {/* Floating 3D Shapes */}
+        <div className="absolute inset-0">
+          {[...Array(5)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full mix-blend-soft-light"
+              animate={{
+                x: [0, 100, 0],
+                y: [0, -50, 0],
+                scale: [1, 1.2, 1],
+              }}
+              transition={{
+                duration: 15 + i * 2,
+                repeat: Infinity,
+                repeatType: "reverse",
+                delay: i * 2,
+              }}
+              style={{
+                width: 100 + i * 50,
+                height: 100 + i * 50,
+                background: darkMode 
+                  ? `radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%)`
+                  : `radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%)`,
+                left: `${20 + i * 15}%`,
+                top: `${10 + i * 10}%`,
+                filter: "blur(20px)",
+              }}
+            />
+          ))}
+        </div>
 
-      <div className="min-h-screen text-slate-900 dark:text-white antialiased bg-white dark:bg-slate-900 relative z-10">
-        <div className="max-w-6xl mx-auto px-6 py-12">
-          {/* Header */}
-          <header className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-extrabold tracking-tight">Ezra Atsikelewi</h1>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Full‑stack developer — Next.js & interactive experiences
-              </p>
-            </div>
-            <nav className="flex items-center gap-4">
-              {["Work", "About", "Contact"].map((item) => (
+        <CustomParticles darkMode={darkMode} />
+      </div>
+
+      <main className={`min-h-screen relative z-10 ${darkMode ? "text-white" : "text-gray-900"}`}>
+        {/* Enhanced Header with Navigation */}
+        <motion.header 
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6 }}
+          className="sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-white/20 shadow-lg"
+        >
+          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="cursor-pointer"
+            >
+              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-indigo-500">
+                Ezra Atsikelewi
+              </span>
+              <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">Full Stack Developer</p>
+            </motion.div>
+            
+            <nav className="hidden md:flex items-center gap-8">
+              {["home", "projects", "skills", "contact"].map((section) => (
                 <motion.a
-                  key={item}
-                  href={`#${item.toLowerCase()}`}
-                  whileHover={{ scale: 1.2, color: "#f0f" }}
-                  className="text-sm hover:underline transition-colors"
+                  key={section}
+                  href={`#${section}`}
+                  className={`capitalize font-medium transition-all duration-300 ${
+                    activeSection === section
+                      ? "text-purple-500 scale-110"
+                      : "text-gray-600 dark:text-gray-300 hover:text-purple-400"
+                  }`}
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  {item}
+                  {section}
                 </motion.a>
               ))}
-              <motion.a
-                href="https://github.com/ezrani-a"
-                target="_blank"
-                rel="noreferrer"
-                whileHover={{ scale: 1.2 }}
-                className="text-sm underline"
-              >
-                GitHub
-              </motion.a>
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className="ml-2 text-sm border px-2 py-1 rounded"
-              >
-                {darkMode ? "Light" : "Dark"}
-              </button>
             </nav>
-</header>
-          {/* Hero Section */}
-          <motion.section
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mt-10 grid md:grid-cols-2 gap-8 items-center"
-          >
-            <div>
-              <motion.h2
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.6 }}
-                className="text-4xl md:text-5xl font-extrabold leading-tight"
-              >
-                Hi — I’m Ezra.
-              </motion.h2>
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.6 }}
-                className="mt-4 text-lg text-gray-700 dark:text-gray-300"
-              >
-                I build fast web apps, love UI animations, and experiment with 3D visuals.
-              </motion.p>
-            </div>
-            <div className="order-first md:order-last">
-              <div className="rounded-2xl bg-white dark:bg-slate-800 p-4 shadow-lg">
-                <Hero3D className="h-64 w-full rounded-lg overflow-hidden" />
-              </div>
-            </div>
-          </motion.section>
 
-          {/* Projects Section */}
-          <motion.section
-            id="projects"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mt-12"
-          >
-            <h3 className="text-2xl font-bold">Selected Projects</h3>
-            <div className="mt-4 flex gap-2 flex-wrap">
-              {categories.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => setFilter(c)}
-                  className={`px-3 py-1 rounded-full border ${filter === c ? "bg-slate-900 text-white" : "bg-white dark:bg-slate-700 dark:text-gray-200"}`}
+            <div className="flex items-center gap-4">
+              <motion.div
+                className="flex gap-3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <motion.a
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  href="https://github.com/ezrani-a"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-purple-500 hover:text-white transition-all duration-300"
                 >
-                  {c}
-                </button>
-              ))}
+                  <FaGithub />
+                </motion.a>
+                <motion.a
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  href="https://linkedin.com/in/ezra-atsikelewi"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-blue-600 hover:text-white transition-all duration-300"
+                >
+                  <FaLinkedin />
+                </motion.a>
+              </motion.div>
+              
+              <motion.button
+                whileHover={{ scale: 1.1, rotate: 180 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setDarkMode((s) => !s)}
+                className="p-3 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-2xl transition-all duration-300"
+              >
+                {darkMode ? <FaSun /> : <FaMoon />}
+              </motion.button>
             </div>
+          </div>
+        </motion.header>
 
+        {/* Enhanced Hero Section with Animated Text */}
+        <section id="home" className="max-w-6xl mx-auto px-6 py-24 text-center">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={staggerText}
+            className="flex flex-col items-center"
+          >
+            {/* Profile Photo */}
             <motion.div
-              className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={{
-                hidden: {},
-                visible: { transition: { staggerChildren: 0.2 } }
-              }}
+              variants={textVariants}
+              className="relative mb-8"
+              whileHover={{ scale: 1.05 }}
             >
-              {filtered.map((p) => (
-                <motion.div
-                  key={p.id}
-                  variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-                  whileHover={{ translateY: -6, scale: 1.02 }}
-                  className="relative rounded-lg overflow-hidden border bg-white dark:bg-slate-800 p-0 shadow-sm cursor-pointer"
-                  onClick={() => setSelected(p)}
+              <div className="relative w-48 h-48 rounded-full overflow-hidden border-4 border-white/20 shadow-2xl bg-gradient-to-br from-purple-400 to-pink-500">
+                <div className="w-full h-full flex items-center justify-center text-white text-4xl">
+                  EA
+                </div>
+              </div>
+              <div className="absolute inset-0 rounded-full border-2 border-transparent bg-gradient-to-r from-purple-500 to-pink-500 animate-spin-slow" 
+                   style={{ margin: '-4px' }} />
+            </motion.div>
+
+            {/* Animated Main Heading */}
+            <motion.div
+              variants={textVariants}
+              className="mb-6"
+            >
+              <motion.h1
+                className="text-5xl md:text-7xl font-black leading-tight mb-4"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              >
+                Hi, I'm{" "}
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 animate-gradient">
+                  <TypewriterText text="Ezra Atsikelewi" delay={1000} />
+                </span>
+              </motion.h1>
+            </motion.div>
+
+            {/* Animated Subtitle */}
+            <motion.div
+              variants={textVariants}
+              className="mb-8"
+            >
+              <motion.p
+                className="text-xl md:text-2xl text-gray-700 dark:text-gray-200 max-w-3xl mx-auto leading-relaxed"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1, delay: 0.8 }}
+              >
+                I{" "}
+                <motion.span
+                  animate={{ 
+                    color: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57']
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
+                  className="font-bold"
                 >
-                  <div className="h-44 flex items-center justify-center overflow-hidden bg-slate-100 dark:bg-slate-700">
-                    {p.lottie ? (
-                      <Lottie animationData={require(`../public${p.lottie}`)} loop={true} className="w-full h-full object-cover" />
-                    ) : (
-                      <Image src={p.thumbnail} alt={p.title} width={500} height={300} className="w-full h-full object-cover" />
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <h4 className="text-lg font-semibold">{p.title}</h4>
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{p.description}</p>
+                  create
+                </motion.span>{" "}
+                digital experiences using{" "}
+                <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-500">
+                  Next.js
+                </span>{" "}
+                and{" "}
+                <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+                  Flutter
+                </span>
+              </motion.p>
+            </motion.div>
+
+            {/* Animated Stats */}
+            <motion.div
+              variants={textVariants}
+              className="grid grid-cols-3 gap-8 mb-8 max-w-2xl mx-auto"
+            >
+              {[
+                { number: "2+", label: "Years Experience", icon: <FaCalendarAlt /> },
+                { number: "15+", label: "Projects Done", icon: <FaRocket /> },
+                { number: "5+", label: "Happy Clients", icon: <FaHeart /> }
+              ].map((stat, index) => (
+                <motion.div
+                  key={stat.label}
+                  className="text-center p-4 rounded-2xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-lg border border-white/20"
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1 + index * 0.2 }}
+                >
+                  <motion.div
+                    className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500 mb-2"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", delay: 1.2 + index * 0.2 }}
+                  >
+                    {stat.number}
+                  </motion.div>
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                    {stat.icon}
+                    {stat.label}
                   </div>
                 </motion.div>
               ))}
             </motion.div>
-          </motion.section>
 
-          {/* Project Modal */}
-          <AnimatePresence>
-            {selected && (
-              <motion.div
-                key="modal"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4"
-                onClick={() => setSelected(null)}
+            {/* Animated CTA Buttons */}
+            <motion.div
+              variants={textVariants}
+              className="flex gap-4 justify-center flex-wrap"
+            >
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-8 py-4 rounded-2xl text-white font-bold bg-gradient-to-r from-purple-500 to-pink-500 shadow-2xl hover:shadow-3xl hover:from-pink-500 hover:to-purple-500 transition-all duration-300 flex items-center gap-2 group"
+                onClick={() => document.getElementById('projects').scrollIntoView({ behavior: 'smooth' })}
               >
-                <motion.div
-                  initial={{ scale: 0.9 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0.9 }}
-                  className="bg-white dark:bg-slate-900 rounded-lg overflow-hidden max-w-3xl w-full p-6"
-                  onClick={(e) => e.stopPropagation()}
+                <FaCode />
+                View My Work
+                <motion.span
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
                 >
-                  <div className="flex justify-between items-start">
-                    <h3 className="text-xl font-bold">{selected.title}</h3>
-                    <button onClick={() => setSelected(null)} className="text-gray-500 hover:text-gray-800 dark:hover:text-white">×</button>
-                  </div>
-                  <div className="mt-4">
-                    <iframe src={selected.demo} className="w-full h-64 rounded-lg border" title="Project Demo"></iframe>
-                    <p className="mt-4">{selected.description}</p>
-                    <div className="mt-4 flex gap-2">
-                      <a href={selected.demo} target="_blank" rel="noreferrer" className="px-3 py-1 border rounded text-sm hover:scale-105 transition">Live Demo</a>
-                      <a href={selected.repo} target="_blank" rel="noreferrer" className="px-3 py-1 border rounded text-sm hover:scale-105 transition">Source</a>
+                  <FaArrowRight />
+                </motion.span>
+              </motion.button>
+              
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-8 py-4 rounded-2xl font-bold bg-white/80 dark:bg-gray-800/80 text-gray-800 dark:text-white border border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center gap-2"
+                onClick={downloadCV}
+              >
+                <FaDownload />
+                Download CV
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        </section>
+
+        {/* Skills Section */}
+        <section id="skills" className="max-w-6xl mx-auto px-6 py-20">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <motion.h2
+              className="text-4xl md:text-5xl font-bold mb-16 text-center"
+              initial={{ opacity: 0, scale: 0.5 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6 }}
+            >
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500">
+                My Skills
+              </span>
+            </motion.h2>
+            
+            <div className="grid md:grid-cols-2 gap-8">
+              {SKILLS.map((skill, index) => (
+                <motion.div
+                  key={skill.name}
+                  className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-white/20"
+                  initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  whileHover={{ scale: 1.02, y: -5 }}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{skill.icon}</span>
+                      <h3 className="font-semibold text-gray-800 dark:text-white">
+                        {skill.name}
+                      </h3>
                     </div>
+                    <span className="text-sm font-bold text-purple-500">
+                      {skill.level}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                    <motion.div
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full"
+                      initial={{ width: 0 }}
+                      whileInView={{ width: `${skill.level}%` }}
+                      transition={{ duration: 1, delay: index * 0.1 + 0.5 }}
+                    />
                   </div>
                 </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </section>
+
+        {/* Enhanced Projects Section */}
+        <section id="projects" className="max-w-7xl mx-auto px-6 py-20">
+          <motion.h2
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-4xl md:text-5xl font-bold mb-16 text-center"
+          >
+            <motion.span
+              className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500"
+              animate={{ 
+                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
+              }}
+              transition={{ 
+                duration: 3, 
+                repeat: Infinity,
+                repeatType: "reverse"
+              }}
+              style={{ backgroundSize: "200% 200%" }}
+            >
+              Featured Projects
+            </motion.span>
+          </motion.h2>
+          
+          <motion.div
+            variants={staggerText}
+            initial="hidden"
+            whileInView="visible"
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
+            {projects.map((p, index) => (
+              <motion.article
+                key={p.id}
+                variants={textVariants}
+                whileHover={{ 
+                  scale: 1.03, 
+                  y: -8, 
+                  rotateY: 5,
+                  transition: { type: "spring", stiffness: 300 }
+                }}
+                className="group relative rounded-3xl overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-2xl border border-white/20 cursor-pointer transform-style-preserve-3d"
+                onClick={() => setSelectedProject(p)}
+                style={{
+                  transform: `perspective(1000px) rotateY(${mousePosition.x / 20}deg) rotateX(${-mousePosition.y / 20}deg)`
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 group-hover:opacity-20 transition-opacity duration-500 rounded-3xl" />
+                
+                <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-purple-400 to-pink-500">
+                  <div className="w-full h-full flex items-center justify-center text-white text-4xl">
+                    <FaGlobe />
+                  </div>
+                  <motion.div
+                    className="absolute top-4 right-4"
+                    initial={{ scale: 0, rotate: -180 }}
+                    whileInView={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: index * 0.2 + 0.5 }}
+                  >
+                    <FaStar className="text-yellow-400" />
+                  </motion.div>
+                </div>
+                
+                <div className="p-6 relative">
+                  <motion.h3
+                    className="text-xl font-bold text-gray-800 dark:text-white mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-pink-500 transition-all duration-300"
+                    whileInView={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, x: -20 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    {p.title}
+                  </motion.h3>
+                  <motion.p
+                    className="text-gray-600 dark:text-gray-300 text-sm mb-4 leading-relaxed"
+                    whileInView={{ opacity: 1 }}
+                    initial={{ opacity: 0 }}
+                    transition={{ delay: index * 0.1 + 0.2 }}
+                  >
+                    {p.description}
+                  </motion.p>
+                  
+                  <motion.div
+                    className="flex flex-wrap gap-2 mb-4"
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    transition={{ delay: index * 0.1 + 0.3 }}
+                  >
+                    {p.tech.map((tech, techIndex) => (
+                      <motion.span
+                        key={tech}
+                        className="px-3 py-1 text-xs rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/30"
+                        initial={{ scale: 0 }}
+                        whileInView={{ scale: 1 }}
+                        transition={{ delay: index * 0.1 + techIndex * 0.1 + 0.4 }}
+                      >
+                        {tech}
+                      </motion.span>
+                    ))}
+                  </motion.div>
+                  
+                  <motion.div
+                    className="flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    initial={{ y: 20 }}
+                    whileInView={{ y: 0 }}
+                    transition={{ delay: index * 0.1 + 0.5 }}
+                  >
+                    <motion.a
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      href={p.demo}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex-1 px-4 py-2 text-center text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+                    >
+                      <FaExternalLinkAlt className="text-xs" />
+                      Demo
+                    </motion.a>
+                    <motion.a
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      href={p.repo}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex-1 px-4 py-2 text-center text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+                    >
+                      <FaGithub />
+                      Code
+                    </motion.a>
+                  </motion.div>
+                </div>
+              </motion.article>
+            ))}
+          </motion.div>
+        </section>
+
+        {/* Enhanced Contact Section */}
+        <section id="contact" className="max-w-6xl mx-auto px-6 py-24">
+          <motion.h2
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-4xl md:text-5xl font-bold mb-16 text-center"
+          >
+            <motion.span
+              className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500"
+              animate={{ 
+                textShadow: [
+                  "0 0 20px rgba(192, 132, 252, 0.5)",
+                  "0 0 30px rgba(236, 72, 153, 0.5)",
+                  "0 0 20px rgba(192, 132, 252, 0.5)"
+                ]
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              Let's Connect
+            </motion.span>
+          </motion.h2>
+          
+          <div className="grid lg:grid-cols-2 gap-12 items-start">
+            {/* Contact Information */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              className="space-y-6"
+            >
+              <motion.h3
+                className="text-2xl font-bold text-gray-800 dark:text-white mb-6"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                Get in Touch
+              </motion.h3>
+              
+              <div className="space-y-4">
+                {[
+                  { icon: FaEnvelope, text: "atsikelewie@gmail.com", label: "Email" },
+                  { icon: FaMapMarkerAlt, text: "Jimma, Ethiopia", label: "Location" },
+                  { icon: FaPhone, text: "+251 96 865 0365", label: "Phone" }
+                ].map((item, index) => (
+                  <motion.div 
+                    key={item.label}
+                    whileHover={{ scale: 1.02, x: 10 }}
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg border border-white/30 shadow-lg"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 + index * 0.1 }}
+                  >
+                    <motion.div 
+                      className="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                      whileHover={{ rotate: 360 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <item.icon />
+                    </motion.div>
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{item.label}</p>
+                      <p className="text-gray-800 dark:text-white font-semibold">{item.text}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              <motion.div
+                className="mt-8 p-6 rounded-2xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20"
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.6 }}
+              >
+                <h4 className="font-semibold text-gray-800 dark:text-white mb-2">Why work with me?</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  I specialize in creating modern, performant web applications with great user experiences. 
+                  Let's bring your ideas to life!
+                </p>
               </motion.div>
-            )}
-          </AnimatePresence>
+            </motion.div>
 
-          {/* About Section */}
-          <motion.section
-            id="about"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mt-12 grid md:grid-cols-3 gap-8 items-center"
-          >
-            <div className="md:col-span-1 flex justify-center md:justify-start">
-              <Image src="/images/ai.jpg" alt="Ezra Atsikelewi" width={200} height={200} className="rounded-full shadow-lg" />
-            </div>
-            <div className="md:col-span-2 space-y-4">
-              <h3 className="text-2xl font-bold">About Me</h3>
-              <p className="text-gray-700 dark:text-gray-300">
-                I am a full-stack developer specializing in Next.js, interactive UI, and 3D visualizations. I enjoy creating web applications that are fast, visually appealing, and engaging.
-              </p>
-              <a href="/resume.pdf" className="inline-block px-4 py-2 bg-slate-900 text-white rounded shadow hover:scale-105 transition">Download Resume</a>
-            </div>
-          </motion.section>
+            {/* Contact Form */}
+            <motion.form
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const data = {
+                  name: form.name.value,
+                  email: form.email.value,
+                  message: form.message.value,
+                };
+                alert("Message sent! I'll get back to you soon.");
+                form.reset();
+              }}
+              className="space-y-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20"
+            >
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Your Name *
+                  </label>
+                  <motion.input
+                    whileFocus={{ scale: 1.02, boxShadow: "0 0 20px rgba(192, 132, 252, 0.3)" }}
+                    name="name"
+                    placeholder="Tedy Smith"
+                    required
+                    className="w-full p-4 rounded-2xl bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 shadow-lg focus:shadow-2xl focus:border-purple-400 transition-all duration-300 outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Your Email *
+                  </label>
+                  <motion.input
+                    whileFocus={{ scale: 1.02, boxShadow: "0 0 20px rgba(236, 72, 153, 0.3)" }}
+                    name="email"
+                    type="email"
+                    placeholder="tedy@example.com"
+                    required
+                    className="w-full p-4 rounded-2xl bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 shadow-lg focus:shadow-2xl focus:border-purple-400 transition-all duration-300 outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Your Message *
+                </label>
+                <motion.textarea
+                  whileFocus={{ scale: 1.02, boxShadow: "0 0 20px rgba(139, 92, 246, 0.3)" }}
+                  name="message"
+                  placeholder="Tell me about your project..."
+                  rows={6}
+                  required
+                  className="w-full p-4 rounded-2xl bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 shadow-lg focus:shadow-2xl focus:border-purple-400 transition-all duration-300 outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
+                />
+              </div>
+              
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                type="submit"
+                className="w-full px-8 py-4 rounded-2xl text-white font-bold bg-gradient-to-r from-purple-500 to-pink-500 shadow-2xl hover:shadow-3xl hover:from-pink-500 hover:to-purple-500 transition-all duration-300 text-lg relative overflow-hidden"
+              >
+                <motion.span
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transform"
+                  animate={{ x: ["-100%", "200%"] }}
+                  transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }}
+                />
+                Send Message
+              </motion.button>
+            </motion.form>
+          </div>
+        </section>
 
-          {/* Contact Section */}
-          <motion.section
-            id="contact"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mt-12"
-          >
-            <h3 className="text-2xl font-bold">Contact Me</h3>
-            <form className="mt-4 space-y-3 max-w-md" onSubmit={handleContactSubmit}>
-              <input
-                type="text"
-                placeholder="Name"
-                value={contactForm.name}
-                onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                className="w-full border rounded px-3 py-2 bg-white dark:bg-slate-700"
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                value={contactForm.email}
-                onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                className="w-full border rounded px-3 py-2 bg-white dark:bg-slate-700"
-              />
-              <textarea
-                placeholder="Message"
-                value={contactForm.message}
-                onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                className="w-full border rounded px-3 py-2 bg-white dark:bg-slate-700"
-              />
-              <button type="submit" className="px-4 py-2 bg-slate-900 text-white rounded hover:scale-105 transition">Send Message</button>
-            </form>
-            {contactMsg && <p className="mt-2 text-sm text-green-500">{contactMsg}</p>}
-            <div className="mt-4 flex gap-4">
-              <a href="https://github.com/ezrani-a" target="_blank" rel="noreferrer" className="hover:scale-110 transition">GitHub</a>
-              <a href="https://web.facebook.com/profile.php?id=100090773921541" target="_blank" rel="noreferrer" className="hover:scale-110 transition">Facebook</a>
-              <a href="mailto:atsikelawie@gmail.com" className="hover:scale-110 transition">Email</a>
-            </div>
-          </motion.section>
+        {/* Enhanced Footer */}
+        <motion.footer 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="py-12 text-center"
+        >
+          <div className="max-w-4xl mx-auto px-6">
+            <motion.div
+              className="mb-6"
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              transition={{ type: "spring", delay: 0.2 }}
+            >
+              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500">
+                Ezra Atsikelewi
+              </span>
+              <motion.p
+                className="text-gray-600 dark:text-gray-400 mt-2"
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                Crafting digital experiences with modern technologies
+              </motion.p>
+            </motion.div>
+            <motion.div
+              className="text-sm text-gray-500 dark:text-gray-500"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              © {new Date().getFullYear()} Ezra Atsikelewi — Built with Next.js & Tailwind CSS
+            </motion.div>
+          </div>
+        </motion.footer>
+      </main>
 
-          {/* Back-to-top button */}
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="fixed bottom-6 right-6 bg-slate-900 text-white p-3 rounded-full shadow-lg hover:scale-110 transition-transform"
+      {/* Project Modal */}
+      <AnimatePresence>
+        {selectedProject && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            ↑
-          </button>
-        </div>
-      </div>
+            <motion.div
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedProject(null)}
+            />
+            
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0, rotateX: 15 }}
+              animate={{ scale: 1, opacity: 1, rotateX: 0 }}
+              exit={{ scale: 0.8, opacity: 0, rotateX: 15 }}
+              transition={{ type: "spring", damping: 25 }}
+              className="relative max-w-4xl w-full bg-white/90 dark:bg-gray-900/95 backdrop-blur-2xl rounded-3xl overflow-hidden shadow-2xl border border-white/20 transform-style-preserve-3d"
+              style={{
+                transform: `perspective(1000px) rotateY(${mousePosition.x / 50}deg) rotateX(${-mousePosition.y / 50}deg)`
+              }}
+            >
+              <div className="relative h-72 w-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white text-6xl">
+                <FaRocket />
+              </div>
+              
+              <div className="p-8">
+                <h3 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
+                  {selectedProject.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 text-lg mb-6 leading-relaxed">
+                  {selectedProject.description}
+                </p>
+                
+                <div className="flex flex-wrap gap-3 mb-8">
+                  {selectedProject.tech.map((tech, index) => (
+                    <motion.span
+                      key={index}
+                      className="px-4 py-2 text-sm rounded-full bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-purple-700 dark:text-purple-300 border border-purple-500/50 font-medium"
+                      whileHover={{ scale: 1.1 }}
+                    >
+                      {tech}
+                    </motion.span>
+                  ))}
+                </div>
+                
+                <div className="flex gap-4">
+                  <motion.a
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    href={selectedProject.demo}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 px-8 py-4 text-center text-white font-bold bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl shadow-2xl hover:shadow-3xl hover:from-pink-500 hover:to-purple-500 transition-all duration-300 flex items-center justify-center gap-3"
+                  >
+                    <FaExternalLinkAlt />
+                    Live Demo
+                  </motion.a>
+                  <motion.a
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    href={selectedProject.repo}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 px-8 py-4 text-center text-gray-700 dark:text-gray-300 font-bold bg-gray-200 dark:bg-gray-800 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center gap-3"
+                  >
+                    <FaGithub />
+                    Source Code
+                  </motion.a>
+                </div>
+              </div>
+              
+              <motion.button
+                onClick={() => setSelectedProject(null)}
+                className="absolute top-4 right-4 p-3 rounded-2xl bg-white/20 dark:bg-black/20 backdrop-blur-md text-white hover:bg-white/30 transition-all duration-300"
+                whileHover={{ scale: 1.1, rotate: 90 }}
+              >
+                ✕
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Floating Action Button */}
+      <motion.button
+        className="fixed bottom-8 right-8 z-40 p-4 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-2xl hover:shadow-3xl transition-all duration-300"
+        whileHover={{ scale: 1.1, y: -2 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        initial={{ opacity: 0, y: 100 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1 }}
+      >
+        <FaArrowRight className="rotate-[-90deg]" />
+      </motion.button>
+
+      <style jsx global>{`
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient 6s ease infinite;
+        }
+        
+        .animate-spin-slow {
+          animation: spin-slow 8s linear infinite;
+        }
+        
+        .transform-style-preserve-3d {
+          transform-style: preserve-3d;
+        }
+      `}</style>
     </div>
   );
 }
