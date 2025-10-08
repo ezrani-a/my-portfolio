@@ -39,7 +39,7 @@ const PROJECTS = [
     description:
       "Admin dashboard with charts, filters, and user management — focuses on clarity and data visualization.",
     demo: "https://my-ecommerce-dashboard1.vercel.app/",
-    repo: "https://github.com/ezrani-a/my-ecommerce-dashboard1",
+    repo: "https://github.com/ezrani-a/ecommerce-dashboard",
     tech: ["Next.js", "Chart.js", "Tailwind CSS"],
   },
 ];
@@ -211,8 +211,6 @@ const CustomParticles = ({ darkMode }) => {
 
 // CV Download Function
 const downloadCV = () => {
-  // Create a PDF-like structure using html2canvas and jspdf
-  // For now, we'll create a simple text file CV
   const cvContent = `
 EZRA ATSIKELEWI
 Full Stack Developer
@@ -252,8 +250,12 @@ E-commerce Dashboard
 • Features: Charts, filters, user management system
 
 EDUCATION
-[Bachelor Degree in Information Technology]
-[Jimma University:Jimma Institue of Technology]
+[Your Degree/Education Information]
+[University/School Name]
+[Year of Graduation]
+
+CERTIFICATIONS
+[Any relevant certifications]
 
 LANGUAGES
 • English: Fluent
@@ -513,7 +515,7 @@ export default function Page() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
               >
-                Hi, I'm{" "}
+                Hi, I&apos;m{" "}
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 animate-gradient">
                   <TypewriterText text="Ezra Atsikelewi" delay={1000} />
                 </span>
@@ -828,7 +830,7 @@ export default function Page() {
               }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              Let's Connect
+              Let&apos;s Connect
             </motion.span>
           </motion.h2>
           
@@ -887,7 +889,7 @@ export default function Page() {
                 <h4 className="font-semibold text-gray-800 dark:text-white mb-2">Why work with me?</h4>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
                   I specialize in creating modern, performant web applications with great user experiences. 
-                  Let's bring your ideas to life!
+                  Let&apos;s bring your ideas to life!
                 </p>
               </motion.div>
             </motion.div>
@@ -905,7 +907,7 @@ export default function Page() {
                   email: form.email.value,
                   message: form.message.value,
                 };
-                alert("Message sent! I'll get back to you soon.");
+                alert("Message sent! I&apos;ll get back to you soon.");
                 form.reset();
               }}
               className="space-y-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20"
